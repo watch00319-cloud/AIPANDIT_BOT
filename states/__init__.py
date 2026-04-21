@@ -1,3 +1,1 @@
-from .main import States
-
-__all__ = ["States"]
+"""FSM states package."""

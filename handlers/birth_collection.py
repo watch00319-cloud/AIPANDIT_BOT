@@ -4,7 +4,7 @@ from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from states import States
+from states.main import States
 from utils.astrology import get_place_coords
 from utils.db import upsert_profile
 

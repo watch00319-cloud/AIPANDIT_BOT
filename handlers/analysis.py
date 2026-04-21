@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
-from states import States
+from states.main import States
 from utils.astrology import build_kundli_teaser, basic_remedies_text
 
 router = Router()

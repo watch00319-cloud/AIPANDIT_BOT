@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from typing import Optional, Dict, Any
 
@@ -6,7 +7,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
-DATABASE_URL = "sqlite+aiosqlite:///bot_users.db"
+# Overridable via env so a Railway persistent volume can be mounted at e.g.
+# /data and DATABASE_URL set to "sqlite+aiosqlite:////data/bot_users.db".
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///bot_users.db")
 
 
 class Base(DeclarativeBase):

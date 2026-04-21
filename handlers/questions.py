@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from states import States
+from states.main import States
 from utils.db import save_answers
 
 router = Router()
