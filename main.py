@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -12,18 +13,27 @@ from handlers import welcome, birth_collection, analysis, questions, pitch, extr
 from utils.db import init_db
 
 
+# Load .env if present (local dev). On Railway / any PaaS, env vars are
+# injected by the platform directly, so missing .env is fine.
 load_dotenv()
-TOKEN = os.getenv("BOT_TOKEN")
+TOKEN = (os.getenv("BOT_TOKEN") or "").strip()
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
+logger = logging.getLogger(__name__)
 
 
 async def main() -> None:
     if not TOKEN:
-        raise ValueError("BOT_TOKEN missing. Add BOT_TOKEN in .env")
+        logger.error(
+            "BOT_TOKEN is not set. "
+            "Local dev: create a `.env` file with BOT_TOKEN=<your_token>. "
+            "Railway / PaaS: add BOT_TOKEN under the service's Variables tab, "
+            "then redeploy."
+        )
+        sys.exit(1)
 
     await init_db()
 
@@ -37,9 +47,12 @@ async def main() -> None:
     dp.include_router(pitch.router)
     dp.include_router(extras.router)
 
-    logging.info("Bot polling started")
+    logger.info("Bot polling started")
     await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("Bot stopped")
