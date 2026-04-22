@@ -40,21 +40,13 @@ async def q4(msg: Message, state: FSMContext):
 async def q5(msg: Message, state: FSMContext):
     await state.update_data(q5=(msg.text or "").strip())
     data = await state.get_data()
-
-    await save_answers(
-        user_id=msg.from_user.id,
-        answers={
-            "q1": data.get("q1", ""),
-            "q2": data.get("q2", ""),
-            "q3": data.get("q3", ""),
-            "q4": data.get("q4", ""),
-            "q5": data.get("q5", ""),
-        },
-    )
-
-    await msg.answer(
-        "Dhanyavaad 🙏 Aapke 5/5 prashn record ho gaye.\n"
-        "Ab main aapko detailed consultation ka best path batata hoon."
-    )
+    await save_answers(msg.from_user.id, {
+        "q1": data.get("q1"),
+        "q2": data.get("q2"),
+        "q3": data.get("q3"),
+        "q4": data.get("q4"),
+        "q5": data.get("q5"),
+    })
     await state.set_state(States.pitch)
     await msg.answer("Type karein: *PITCH*")
+

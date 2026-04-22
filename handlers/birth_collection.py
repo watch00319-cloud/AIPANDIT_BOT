@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 
 from aiogram import Router
 from aiogram.fsm.context import FSMContext
@@ -8,6 +9,7 @@ from states.main import States
 from utils.astrology import get_place_coords
 from utils.db import upsert_profile
 
+logger = logging.getLogger(__name__)
 router = Router()
 
 
@@ -35,7 +37,7 @@ async def collect_name(msg: Message, state: FSMContext):
         return
 
     await state.update_data(name=name)
-    await msg.answer("Step 2/6 ✅\nApni *Date of Birth* bhejiye (DD/MM/YYYY).")
+    await msg.answer("📅 Aapki date of birth? (DD/MM/YYYY)")
     await state.set_state(States.waiting_dob)
 
 
@@ -47,7 +49,7 @@ async def collect_dob(msg: Message, state: FSMContext):
         return
 
     await state.update_data(dob=dob)
-    await msg.answer("Step 3/6 ✅\nApna *Birth Time* bhejiye (HH:MM, 24-hour).")
+    await msg.answer("⏰ Janam ka samay? (HH:MM)")
     await state.set_state(States.waiting_tob)
 
 
@@ -59,7 +61,7 @@ async def collect_tob(msg: Message, state: FSMContext):
         return
 
     await state.update_data(tob=tob)
-    await msg.answer("Step 4/6 ✅\nApna *Birth Place* (City) likhiye.")
+    await msg.answer("📍 Janam sthal?")
     await state.set_state(States.waiting_place)
 
 
@@ -87,13 +89,11 @@ async def collect_place(msg: Message, state: FSMContext):
         },
     )
 
+    logger.info(f"User Data: {{'chatId': {msg.chat.id}, 'userId': {msg.from_user.id}, 'data': {data}}}")
+
     await msg.answer(
-        f"Step 5/6 ✅\nDetails mil gayi:\n"
-        f"• Name: {data.get('name')}\n"
-        f"• DOB: {data.get('dob')}\n"
-        f"• TOB: {data.get('tob')}\n"
-        f"• Place: {place}\n\n"
-        "Ab main aapki free kundli snapshot nikaalta hoon... 🔮\n"
+        "✅ Details mil gayi hain! Ab analysis start ho raha hai 🔮\n\n"
         "Type karein: *ANALYZE*"
     )
     await state.set_state(States.analysis)
+

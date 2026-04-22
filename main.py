@@ -13,27 +13,25 @@ import sys
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram import F
 from aiogram.exceptions import TelegramUnauthorizedError
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.fsm.context import FSMContext
+
+# Relative imports
+from states.main import States
+from utils.db import get_profile, init_db
 from dotenv import load_dotenv
 
-# Absolute imports — works when `/app/` (Railway) or the project root
-# (local dev) is on sys.path.
 from handlers.welcome import router as welcome_router
 from handlers.birth_collection import router as birth_collection_router
 from handlers.analysis import router as analysis_router
 from handlers.questions import router as questions_router
 from handlers.pitch import router as pitch_router
 from handlers.extras import router as extras_router
-from utils.db import init_db
 
-
-# ---------------------------------------------------------------------------
 # Configuration & logging
-# ---------------------------------------------------------------------------
-
-# Load .env when running locally. On Railway / any PaaS, environment
-# variables are injected directly and this is a harmless no-op.
 load_dotenv()
 
 BOT_TOKEN = (os.getenv("BOT_TOKEN") or "").strip()
@@ -46,10 +44,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("vedic_astrology_bot")
 
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 async def main() -> None:
     if not BOT_TOKEN:
@@ -69,6 +63,32 @@ async def main() -> None:
         default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
     )
     dp = Dispatcher(storage=MemoryStorage())
+
+    WELCOME_MSG = (
+        "🌟 *Namaskar Beta/Beti!* 🌟\n\n"
+        "Main hoon *Maharishi AstroGuru Ji*.\n"
+        "Aaj hum aapki janma-jankari ke aadhaar par Vedic guidance lenge.\n\n"
+        "*Disclaimer:* Yeh spiritual/astrology guidance hai, medical ya financial advice nahi.\n\n"
+        "Kya shuru karein?"
+    )
+
+    @dp.message(F.text & ~F.text.startswith("/") & States.waiting_consent | States.waiting_language)
+    async def auto_start_flow(msg: Message, state: FSMContext):
+        await state.clear()
+
+        profile = await get_profile(msg.from_user.id)
+        remembered = ""
+        if profile and profile.name:
+            remembered = f"\n\n🧠 Mujhe yaad hai aapka naam *{profile.name}* hai."
+
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="✅ Haan Ji, Shuru Karein", callback_data="consent_yes")],
+                [InlineKeyboardButton(text="❌ Nahi", callback_data="consent_no")],
+            ]
+        )
+        await msg.answer(WELCOME_MSG + remembered, reply_markup=kb)
+        await state.set_state(States.waiting_consent)
 
     dp.include_router(welcome_router)
     dp.include_router(birth_collection_router)

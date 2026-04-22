@@ -42,3 +42,4 @@ async def show_free_analysis(msg: Message, state: FSMContext):
     await msg.answer(msg_text, reply_markup=kb)
     await msg.answer("Q1/5: Career ya business mein aapki sabse badi chinta kya hai?")
     await state.set_state(States.question_1)
+

@@ -19,7 +19,6 @@ async def gochara_callback(callback: CallbackQuery):
 async def compat_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         compatibility_teaser_text()
-        + "\n\nAgar full compatibility reading chahiye, seedha WhatsApp karein: 6283941933"
     )
     await state.set_state(States.compatibility)
     await callback.answer()
@@ -28,17 +27,12 @@ async def compat_callback(callback: CallbackQuery, state: FSMContext):
 @router.message(States.compatibility)
 async def compatibility_input(msg: Message, state: FSMContext):
     await msg.answer(
-        "Details receive ho gayi.\n"
         "Teaser complete ✅\n"
         "Full compatibility session ke liye contact karein: *6283941933*"
     )
     await state.set_state(States.pitch)
 
-
-@router.message(Command("help"))
-async def help_cmd(msg: Message):
     await msg.answer(
-        "Commands:\n"
         "/start - Nayi consultation shuru karein\n"
         "/reset - Current session reset\n"
         "/help - Ye help text"
@@ -49,3 +43,13 @@ async def help_cmd(msg: Message):
 async def reset_cmd(msg: Message, state: FSMContext):
     await state.clear()
     await msg.answer("Session reset ho gaya. Dobara shuru karne ke liye /start likhiye.")
+
+
+@router.message(Command("help"))
+async def help_cmd(msg: Message):
+    await msg.answer(
+        "/start - Nayi consultation shuru karein\n"
+        "/reset - Current session reset\n"
+        "/help - Ye help text"
+    )
+

@@ -60,6 +60,7 @@ async def consent_no(callback: CallbackQuery, state: FSMContext):
 async def set_language(callback: CallbackQuery, state: FSMContext):
     language = "hindi" if callback.data == "lang_hi" else "hinglish"
     await state.update_data(language=language)
-    await callback.message.answer("Step 1/6 ✅\nApna *poora naam* likhiye.")
+    await callback.message.answer("🙏 Namaskar! Aapka naam kya hai?")
     await state.set_state(States.waiting_name)
     await callback.answer()
+
