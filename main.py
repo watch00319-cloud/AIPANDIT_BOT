@@ -120,3 +120,4 @@ if __name__ == "__main__":
     except Exception:
         logger.exception("Fatal error: bot crashed")
         sys.exit(1)
+#force redeploy
