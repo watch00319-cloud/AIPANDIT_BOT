@@ -1,3 +1,9 @@
+python-dotenv
+sqlalchemy
+aiosqlite
+pytz
+>>>>>>> 096ea85dcf35403b9e022bcf29c88fc000eae212
+=======
 aiogram==3.4.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
@@ -6,3 +12,9 @@ aiosqlite==0.20.0
 geopy==2.4.1
 pytz==2024.1
 greenlet==3.0.3
+=======
+python-dotenv
+sqlalchemy
+aiosqlite
+pytz
+>>>>>>> 096ea85dcf35403b9e022bcf29c88fc000eae212
