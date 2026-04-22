@@ -1,1 +1,1 @@
-worker: python -m vedic_astrology_bot.main
+worker: python main.py
