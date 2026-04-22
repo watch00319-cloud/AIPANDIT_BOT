@@ -1,0 +1,8 @@
+aiogram
+sqlalchemy
+aiosqlite
+python-dotenv
+pytz
+geopy
+greenlet
+python-dateutil

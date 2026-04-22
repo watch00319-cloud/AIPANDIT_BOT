@@ -1,0 +1,1 @@
+"""Vedic Astrology Bot package."""
