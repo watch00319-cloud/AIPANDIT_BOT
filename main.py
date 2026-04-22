@@ -24,7 +24,7 @@ from states.main import States
 from utils.db import get_profile, init_db
 from dotenv import load_dotenv
 
-from handlers.welcome import router as welcome_router
+from handlers.welcome import router as welcome_router, WELCOME_MSG
 from handlers.birth_collection import router as birth_collection_router
 from handlers.analysis import router as analysis_router
 from handlers.questions import router as questions_router
@@ -64,27 +64,20 @@ async def main() -> None:
     )
     dp = Dispatcher(storage=MemoryStorage())
 
-    WELCOME_MSG = (
-        "🌟 *Namaskar Beta/Beti!* 🌟\\n\\n"
-        "Main hoon *Maharishi AstroGuru Ji*.\\n"
-        "Aaj hum aapki janma-jankari ke aadhaar par Vedic guidance lenge.\\n\\n"
-        "*Disclaimer:* Yeh spiritual/astrology guidance hai, medical ya financial advice nahi.\\n\\n"
-        "Kya shuru karein?"
-    )
-
     @dp.message(StateFilter(None), F.text & ~F.text.startswith("/"))
     async def auto_start_flow(msg: Message, state: FSMContext):
+        """Auto-trigger welcome on any non-command text when no state active."""
         await state.clear()
 
         profile = await get_profile(msg.from_user.id)
         remembered = ""
         if profile and profile.name:
-            remembered = f"\\n\\n🧠 Mujhe yaad hai aapka naam *{profile.name}* hai."
+            remembered = f"\n\n🧠 Mujhe yaad hai aapka naam *{profile.name}* hai."
 
         kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [InlineKeyboardButton(text="✅ Haan Ji, Shuru Karein", callback_data="consent_yes")],
-                [InlineKeyboardButton(text="❌ Nahi", callback_data="consent_no")],
+                [InlineKeyboardButton(text="❌ Abhi Nahi", callback_data="consent_no")],
             ]
         )
         await msg.answer(WELCOME_MSG + remembered, reply_markup=kb)
