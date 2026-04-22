@@ -1,29 +1,5 @@
-aiogram
-sqlalchemy
-aiosqlite
-python-dotenv
-pytz
-geopy
-greenlet
-python-dateutil
->>>>>>> 787eb0e8a61139f475f447423ce6b7e0c7e3793e
-=======
 aiogram==3.4.1
-python-dotenv==1.0.1
-sqlalchemy==2.0.31
-aiosqlite==0.20.0
-geopy==2.4.1
-pytz==2024.1
-greenlet==3.0.3
-python-dateutil==2.9.0.post0
-
-=======
-aiogram
+python-dotenv
 sqlalchemy
 aiosqlite
-python-dotenv
-pytz
-geopy
-greenlet
-python-dateutil
->>>>>>> 787eb0e8a61139f475f447423ce6b7e0c7e3793e
+
