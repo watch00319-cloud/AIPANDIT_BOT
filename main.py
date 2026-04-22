@@ -118,11 +118,5 @@ if __name__ == "__main__":
         logger.info("Bot stopped by user / system")
     except Exception:
         logger.exception("Fatal error: bot crashed")
-#force redeploy
->>>>>>> 2a199755c4291e1d1145a1cdd54a37c54e7a97a2
-=======
-    sys.exit(1)
+        sys.exit(1)
 
-=======
-#force redeploy
->>>>>>> 2a199755c4291e1d1145a1cdd54a37c54e7a97a2
