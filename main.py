@@ -14,6 +14,7 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramUnauthorizedError
+from aiogram.filters import StateFilter
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
@@ -71,7 +72,7 @@ async def main() -> None:
         "Kya shuru karein?"
     )
 
-    @dp.message(F.text & ~F.text.startswith("/") & ~States)
+    @dp.message(StateFilter(None), F.text & ~F.text.startswith("/"))
     async def auto_start_flow(msg: Message, state: FSMContext):
         await state.clear()
 
