@@ -10,10 +10,9 @@ import logging
 import os
 import sys
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram import F
 from aiogram.exceptions import TelegramUnauthorizedError
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
@@ -65,21 +64,21 @@ async def main() -> None:
     dp = Dispatcher(storage=MemoryStorage())
 
     WELCOME_MSG = (
-        "🌟 *Namaskar Beta/Beti!* 🌟\n\n"
-        "Main hoon *Maharishi AstroGuru Ji*.\n"
-        "Aaj hum aapki janma-jankari ke aadhaar par Vedic guidance lenge.\n\n"
-        "*Disclaimer:* Yeh spiritual/astrology guidance hai, medical ya financial advice nahi.\n\n"
+        "🌟 *Namaskar Beta/Beti!* 🌟\\n\\n"
+        "Main hoon *Maharishi AstroGuru Ji*.\\n"
+        "Aaj hum aapki janma-jankari ke aadhaar par Vedic guidance lenge.\\n\\n"
+        "*Disclaimer:* Yeh spiritual/astrology guidance hai, medical ya financial advice nahi.\\n\\n"
         "Kya shuru karein?"
     )
 
-    @dp.message(F.text & ~F.text.startswith("/") & States.waiting_consent | States.waiting_language)
+    @dp.message(F.text & ~F.text.startswith("/") & ~States)
     async def auto_start_flow(msg: Message, state: FSMContext):
         await state.clear()
 
         profile = await get_profile(msg.from_user.id)
         remembered = ""
         if profile and profile.name:
-            remembered = f"\n\n🧠 Mujhe yaad hai aapka naam *{profile.name}* hai."
+            remembered = f"\\n\\n🧠 Mujhe yaad hai aapka naam *{profile.name}* hai."
 
         kb = InlineKeyboardMarkup(
             inline_keyboard=[
@@ -120,3 +119,4 @@ if __name__ == "__main__":
     except Exception:
         logger.exception("Fatal error: bot crashed")
         sys.exit(1)
+
