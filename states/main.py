@@ -1,7 +1,17 @@
+<<<<<<< HEAD
+=======
+"""
+FSM state definitions for the Vedic Astrology Telegram bot.
+
+Uses aiogram 3.x StatesGroup / State to model the conversation flow.
+"""
+
+>>>>>>> 787eb0e8a61139f475f447423ce6b7e0c7e3793e
 from aiogram.fsm.state import State, StatesGroup
 
 
 class States(StatesGroup):
+<<<<<<< HEAD
     # Step 1: Consent & language
     waiting_consent = State()
     waiting_language = State()
@@ -27,3 +37,10 @@ class States(StatesGroup):
 
     # Step 6: Extras
     compatibility = State()
+=======
+    """Top-level FSM state group for the bot conversation flow."""
+
+    # Onboarding
+    waiting_consent = State()    # Waiting for the user to accept the disclaimer
+    waiting_language = State()   # Waiting for the user to choose a language
+>>>>>>> 787eb0e8a61139f475f447423ce6b7e0c7e3793e
