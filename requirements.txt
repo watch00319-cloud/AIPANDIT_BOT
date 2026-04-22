@@ -7,3 +7,4 @@ geopy==2.4.1
 pytz==2024.1
 greenlet==3.0.3
 timezonefinder==6.5.2
+pyswisseph==2.10.3.2

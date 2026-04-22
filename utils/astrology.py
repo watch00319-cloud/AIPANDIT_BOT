@@ -1,17 +1,36 @@
+"""
+Vedic Astrology calculation engine using Swiss Ephemeris (pyswisseph).
+
+Provides accurate NASA-grade planetary positions with Lahiri ayanamsa
+(standard Indian Vedic sidereal zodiac), true Lagna (Ascendant),
+Nakshatra, and Vimshottari Mahadasha.
+"""
 from __future__ import annotations
 
-from datetime import datetime
-from math import floor
+from datetime import datetime, timedelta
 from typing import Dict, Tuple
 
 import pytz
+import swisseph as swe
 from dateutil import parser
 from geopy.geocoders import Nominatim
+from timezonefinder import TimezoneFinder
 
 
+# ---------------------------------------------------------------------------
+# Configure Swiss Ephemeris for Vedic (Lahiri ayanamsa, sidereal zodiac)
+# ---------------------------------------------------------------------------
+swe.set_sid_mode(swe.SIDM_LAHIRI)
+SIDEREAL_FLAG = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
+
+
+# ---------------------------------------------------------------------------
+# Vedic constants
+# ---------------------------------------------------------------------------
 RASI_NAMES = [
-    "Mesh", "Vrishabh", "Mithun", "Kark", "Singh", "Kanya",
-    "Tula", "Vrishchik", "Dhanu", "Makar", "Kumbh", "Meen"
+    "Mesh (Aries)", "Vrishabh (Taurus)", "Mithun (Gemini)", "Kark (Cancer)",
+    "Singh (Leo)", "Kanya (Virgo)", "Tula (Libra)", "Vrishchik (Scorpio)",
+    "Dhanu (Sagittarius)", "Makar (Capricorn)", "Kumbh (Aquarius)", "Meen (Pisces)",
 ]
 
 NAKSHATRAS = [
@@ -19,150 +38,287 @@ NAKSHATRAS = [
     "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta",
     "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha",
     "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada",
-    "Uttara Bhadrapada", "Revati"
+    "Uttara Bhadrapada", "Revati",
 ]
 
-DASHA_SEQUENCE = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"]
+# Vimshottari: 27 nakshatras × lords (9-cycle repeats 3 times)
+NAK_LORDS = [
+    "Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury",
+] * 3
 
-PLANET_BASE = {
-    "Sun": 100.0,
-    "Moon": 220.0,
-    "Mars": 150.0,
-    "Mercury": 90.0,
-    "Jupiter": 40.0,
-    "Venus": 310.0,
-    "Saturn": 280.0,
-    "Rahu": 25.0,
-    "Ketu": 205.0,
+DASHA_YEARS = {
+    "Ketu": 7, "Venus": 20, "Sun": 6, "Moon": 10, "Mars": 7,
+    "Rahu": 18, "Jupiter": 16, "Saturn": 19, "Mercury": 17,
+}  # Total 120 years
+
+DASHA_ORDER = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"]
+
+PLANETS = {
+    "Sun": swe.SUN,
+    "Moon": swe.MOON,
+    "Mars": swe.MARS,
+    "Mercury": swe.MERCURY,
+    "Jupiter": swe.JUPITER,
+    "Venus": swe.VENUS,
+    "Saturn": swe.SATURN,
+    "Rahu": swe.TRUE_NODE,
 }
 
-PLANET_SPEED = {
-    "Sun": 0.9856,
-    "Moon": 13.1764,
-    "Mars": 0.524,
-    "Mercury": 1.2,
-    "Jupiter": 0.083,
-    "Venus": 1.18,
-    "Saturn": 0.033,
-    "Rahu": -0.053,
-    "Ketu": -0.053,
+PLANET_HINDI = {
+    "Sun": "☉ Surya",
+    "Moon": "☾ Chandra",
+    "Mars": "♂ Mangal",
+    "Mercury": "☿ Budh",
+    "Jupiter": "♃ Guru",
+    "Venus": "♀ Shukra",
+    "Saturn": "♄ Shani",
+    "Rahu": "☊ Rahu",
+    "Ketu": "☋ Ketu",
 }
 
 
-_geolocator = Nominatim(user_agent="vedicguru_simple_bot")
-
-
-def _deg_to_rasi(deg: float) -> str:
-    idx = int((deg % 360) // 30)
-    deg_in = (deg % 30)
-    return f"{RASI_NAMES[idx]} {deg_in:.1f}°"
-
-
-def _days_since_epoch(dt: datetime) -> float:
-    epoch = datetime(2000, 1, 1, tzinfo=pytz.UTC)
-    return (dt - epoch).total_seconds() / 86400.0
-
-
-def _planet_longitude(planet: str, days: float) -> float:
-    return (PLANET_BASE[planet] + PLANET_SPEED[planet] * days) % 360
-
-
-def _nakshatra_from_deg(deg: float) -> str:
-    one = 360.0 / 27.0
-    return NAKSHATRAS[int((deg % 360) // one)]
-
-
-def _dasha_from_moon_deg(moon_deg: float) -> str:
-    one = 360.0 / 27.0
-    nak_idx = int((moon_deg % 360) // one)
-    return DASHA_SEQUENCE[nak_idx % len(DASHA_SEQUENCE)] + " Mahadasha"
-
-
-def _approx_lagna(dt_local: datetime, lon: float) -> float:
-    minutes = dt_local.hour * 60 + dt_local.minute
-    # very simplified local sidereal approximation
-    return ((minutes / 4.0) + lon) % 360
-
-
-def parse_birth_to_utc(dob_str: str, tob_str: str, tz_name: str = "Asia/Kolkata") -> datetime:
-    dt_local = parser.parse(f"{dob_str} {tob_str}", dayfirst=True)
-    tz = pytz.timezone(tz_name)
-    return tz.localize(dt_local).astimezone(pytz.UTC)
+# ---------------------------------------------------------------------------
+# Geocoding + timezone
+# ---------------------------------------------------------------------------
+_geolocator = Nominatim(user_agent="vedicguru_swisseph_bot")
+_tz_finder = TimezoneFinder()
 
 
 def get_place_coords(place: str) -> Tuple[float, float]:
+    """Geocode a place to (lat, lon). Fallback: New Delhi."""
     try:
         loc = _geolocator.geocode(f"{place}, India", timeout=8)
         if loc:
             return float(loc.latitude), float(loc.longitude)
     except Exception:
         pass
-    return 28.6139, 77.2090  # Delhi fallback
+    try:
+        loc = _geolocator.geocode(place, timeout=8)
+        if loc:
+            return float(loc.latitude), float(loc.longitude)
+    except Exception:
+        pass
+    return 28.6139, 77.2090
 
 
-def build_kundli_teaser(name: str, dob: str, tob: str, lat: float, lon: float, language: str = "hinglish") -> str:
-    dt_utc = parse_birth_to_utc(dob, tob)
-    dt_local = dt_utc.astimezone(pytz.timezone("Asia/Kolkata"))
-    days = _days_since_epoch(dt_utc)
+def get_timezone_for_coords(lat: float, lon: float) -> str:
+    """Auto-detect IANA timezone. Defaults to Asia/Kolkata."""
+    try:
+        tz_name = _tz_finder.timezone_at(lat=lat, lng=lon)
+        if tz_name:
+            return tz_name
+    except Exception:
+        pass
+    return "Asia/Kolkata"
 
-    lagna_deg = _approx_lagna(dt_local, lon)
-    moon_deg = _planet_longitude("Moon", days)
 
-    positions: Dict[str, str] = {
-        p: _deg_to_rasi(_planet_longitude(p, days))
-        for p in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]
+# ---------------------------------------------------------------------------
+# Core astronomical calculations
+# ---------------------------------------------------------------------------
+def parse_birth_to_utc(
+    dob_str: str, tob_str: str, tz_name: str = "Asia/Kolkata"
+) -> datetime:
+    dt_local = parser.parse(f"{dob_str} {tob_str}", dayfirst=True)
+    tz = pytz.timezone(tz_name)
+    return tz.localize(dt_local).astimezone(pytz.UTC)
+
+
+def _julian_day(dt_utc: datetime) -> float:
+    hour_frac = dt_utc.hour + dt_utc.minute / 60.0 + dt_utc.second / 3600.0
+    return swe.julday(dt_utc.year, dt_utc.month, dt_utc.day, hour_frac)
+
+
+def _deg_to_rasi_str(deg: float) -> str:
+    deg = deg % 360
+    idx = int(deg // 30)
+    within = deg - idx * 30
+    return f"{RASI_NAMES[idx]} {within:.2f}°"
+
+
+def _nakshatra_from_deg(deg: float) -> Tuple[str, int, int]:
+    """Return (nakshatra_name, nakshatra_index 0-26, pada 1-4)."""
+    deg = deg % 360
+    span = 360.0 / 27.0
+    idx = int(deg // span)
+    within = deg - idx * span
+    pada = int(within // (span / 4.0)) + 1
+    return NAKSHATRAS[idx], idx, pada
+
+
+def _compute_planet_positions(jd: float) -> Dict[str, float]:
+    positions: Dict[str, float] = {}
+    for name, pid in PLANETS.items():
+        result, _ = swe.calc_ut(jd, pid, SIDEREAL_FLAG)
+        positions[name] = result[0] % 360
+    positions["Ketu"] = (positions["Rahu"] + 180.0) % 360
+    return positions
+
+
+def _compute_lagna(jd: float, lat: float, lon: float) -> float:
+    """Sidereal Ascendant (Lagna) using Placidus houses."""
+    try:
+        cusps, ascmc = swe.houses_ex(jd, lat, lon, b"P", swe.FLG_SIDEREAL)
+        return ascmc[0] % 360
+    except Exception:
+        cusps, ascmc = swe.houses(jd, lat, lon, b"P")
+        # subtract ayanamsa manually for sidereal
+        ayan = swe.get_ayanamsa_ut(jd)
+        return (ascmc[0] - ayan) % 360
+
+
+def _vimshottari_mahadasha(moon_deg: float, birth_utc: datetime) -> Dict[str, str]:
+    """Compute currently-running Vimshottari Mahadasha."""
+    span = 360.0 / 27.0
+    moon_deg = moon_deg % 360
+    nak_idx = int(moon_deg // span)
+    within = moon_deg - nak_idx * span
+    fraction_elapsed = within / span
+
+    birth_lord = NAK_LORDS[nak_idx]
+    total_years = DASHA_YEARS[birth_lord]
+    years_remaining_at_birth = total_years * (1.0 - fraction_elapsed)
+
+    now = datetime.now(tz=pytz.UTC)
+    elapsed_years = (now - birth_utc).total_seconds() / (365.25 * 24 * 3600)
+
+    lord_cycle_idx = DASHA_ORDER.index(birth_lord)
+
+    if elapsed_years < years_remaining_at_birth:
+        running_lord = birth_lord
+        time_in_current = elapsed_years
+        time_left = years_remaining_at_birth - elapsed_years
+    else:
+        elapsed_years -= years_remaining_at_birth
+        lord_cycle_idx = (lord_cycle_idx + 1) % 9
+        while True:
+            lord = DASHA_ORDER[lord_cycle_idx]
+            yrs = DASHA_YEARS[lord]
+            if elapsed_years < yrs:
+                running_lord = lord
+                time_in_current = elapsed_years
+                time_left = yrs - elapsed_years
+                break
+            elapsed_years -= yrs
+            lord_cycle_idx = (lord_cycle_idx + 1) % 9
+
+    end_date = now + timedelta(days=time_left * 365.25)
+
+    return {
+        "birth_lord": birth_lord,
+        "current_lord": running_lord,
+        "elapsed_in_current": f"{time_in_current:.1f} years",
+        "remaining_in_current": f"{time_left:.1f} years",
+        "current_ends_on": end_date.strftime("%B %Y"),
     }
 
-    dasha = _dasha_from_moon_deg(moon_deg)
-    moon_nakshatra = _nakshatra_from_deg(moon_deg)
 
-    return (
-        f"🔮 *Free Kundli Snapshot* (Simplified Vedic Guidance Model)\n\n"
-        f"Namaste *{name}* Ji,\n"
-        f"🌅 Lagna: *{_deg_to_rasi(lagna_deg)}*\n"
-        f"🌙 Chandra Rashi: *{positions['Moon']}*\n"
-        f"⭐ Nakshatra: *{moon_nakshatra}*\n"
-        f"🕉️ Vimshottari Focus: *{dasha}*\n\n"
-        f"☉ Surya: {positions['Sun']}\n"
-        f"♂ Mangal: {positions['Mars']}\n"
-        f"♃ Guru: {positions['Jupiter']}\n"
-        f"♀ Shukra: {positions['Venus']}\n"
-        f"♄ Shani: {positions['Saturn']}\n\n"
-        f"📍 Birth Place Coordinates: {lat:.2f}, {lon:.2f}\n"
-        f"_Yeh free preview hai. Full paid reading mein deeper divisional charts, yogas, timing aur remedies milte hain._"
-    )
+# ---------------------------------------------------------------------------
+# Public high-level functions (used by handlers)
+# ---------------------------------------------------------------------------
+def build_kundli_teaser(
+    name: str,
+    dob: str,
+    tob: str,
+    lat: float,
+    lon: float,
+    language: str = "hinglish",
+) -> str:
+    """Full accurate Vedic kundli snapshot (Swiss Ephemeris + Lahiri)."""
+    tz_name = get_timezone_for_coords(lat, lon)
+    try:
+        dt_utc = parse_birth_to_utc(dob, tob, tz_name=tz_name)
+    except Exception:
+        return "❌ DOB/TOB format galat hai. Please /reset karein."
+
+    jd = _julian_day(dt_utc)
+
+    try:
+        positions = _compute_planet_positions(jd)
+        lagna_deg = _compute_lagna(jd, lat, lon)
+    except Exception as e:
+        return f"⚠️ Calculation error: {e}. Please /reset and try again."
+
+    moon_deg = positions["Moon"]
+    moon_nak, _, moon_pada = _nakshatra_from_deg(moon_deg)
+    lagna_nak, _, _ = _nakshatra_from_deg(lagna_deg)
+    dasha = _vimshottari_mahadasha(moon_deg, dt_utc)
+
+    lines = [
+        "🔮 *FREE KUNDLI SNAPSHOT*",
+        "_Swiss Ephemeris • Lahiri Ayanamsa_",
+        "",
+        f"Namaste *{name}* Ji 🙏",
+        f"📅 Janam: {dob} at {tob}",
+        f"🌐 TZ: {tz_name}",
+        f"📍 Sthan: {lat:.4f}°, {lon:.4f}°",
+        "",
+        "━━━━━━━━━━━━━━━━━━",
+        "🌅 *Lagna (Ascendant)*",
+        f"   → {_deg_to_rasi_str(lagna_deg)}",
+        f"   → Nakshatra: *{lagna_nak}*",
+        "",
+        "🌙 *Janma Rashi (Moon Sign)*",
+        f"   → {_deg_to_rasi_str(moon_deg)}",
+        f"   → Nakshatra: *{moon_nak}* (Pada {moon_pada})",
+        "",
+        "━━━━━━━━━━━━━━━━━━",
+        "🪐 *Grah Sthiti*",
+    ]
+
+    for planet in ["Sun", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]:
+        lines.append(f"   {PLANET_HINDI[planet]}: {_deg_to_rasi_str(positions[planet])}")
+
+    lines += [
+        "",
+        "━━━━━━━━━━━━━━━━━━",
+        "🕉️ *Vimshottari Mahadasha*",
+        f"   Janma Dasha: *{dasha['birth_lord']}*",
+        f"   Abhi chal rahi: *{dasha['current_lord']}* Mahadasha",
+        f"   Elapsed: {dasha['elapsed_in_current']}",
+        f"   Remaining: {dasha['remaining_in_current']}",
+        f"   Changes on: *{dasha['current_ends_on']}*",
+        "",
+        "━━━━━━━━━━━━━━━━━━",
+        "_Ye exact astronomical data hai (NASA-grade Swiss Ephemeris). "
+        "Full paid reading mein D1/D9 charts, yogas, ashtakvarga, personalized remedies._",
+    ]
+    return "\n".join(lines)
 
 
 def daily_gochara_text() -> str:
+    """Live planetary transits for current UTC moment."""
     now = datetime.now(tz=pytz.UTC)
-    days = _days_since_epoch(now)
+    jd = _julian_day(now)
+    positions = _compute_planet_positions(jd)
 
-    saturn = _deg_to_rasi(_planet_longitude("Saturn", days))
-    jupiter = _deg_to_rasi(_planet_longitude("Jupiter", days))
-    moon = _deg_to_rasi(_planet_longitude("Moon", days))
+    lines = ["🌙 *Aaj ka Gochara* (Live Transits)\n"]
+    for planet in ["Moon", "Sun", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]:
+        lines.append(f"{PLANET_HINDI[planet]}: {_deg_to_rasi_str(positions[planet])}")
 
-    return (
-        "🌙 *Aaj ka Daily Gochara* (Simplified)\n\n"
-        f"♄ Shani Transit: {saturn}\n"
-        f"♃ Guru Transit: {jupiter}\n"
-        f"☾ Chandra Transit: {moon}\n\n"
-        "Guidance: Discipline + patience + mindful communication aaj aapko fayda dega."
-    )
+    lines.append("\n_Guidance: Chandra + Guru ka rhythm dekhte hue patience + clarity rakhein._")
+    return "\n".join(lines)
 
 
 def compatibility_teaser_text() -> str:
     return (
-        "💑 *Compatibility Teaser*\n\n"
-        "Aap dono ke guna-milan, emotional rhythm, communication pattern aur long-term stability ka short diagnostic diya jayega.\n"
+        "💑 *Compatibility Teaser* (Ashtakoot Guna Milan)\n\n"
+        "Aap dono ke:\n"
+        "• Guna Milan (out of 36)\n"
+        "• Chandra compatibility (emotional rhythm)\n"
+        "• Budh + Shukra (communication + affection)\n"
+        "• Mangal Dosha check\n"
+        "• Long-term stability score\n\n"
         "Full report mein detailed points + practical remedies milte hain."
     )
 
 
 def basic_remedies_text() -> str:
     return (
-        "🪔 *Basic Upay (General)*\n"
-        "1) Somvar ko Shiv mantra 108 baar jap.\n"
-        "2) Guruwar pe peele daal ka daan.\n"
-        "3) Har subah 10 minute deep breathing + Surya arghya.\n"
-        "4) Ghar mein shaam ko diya jalakar gratitude practice."
+        "🪔 *Basic Upay (General)*\n\n"
+        "1) Somvar ko Shiv mantra *Om Namah Shivaya* 108 baar jap.\n"
+        "2) Guruwar pe peele daal + haldi ka daan.\n"
+        "3) Har subah 10 min pranayama + Surya arghya.\n"
+        "4) Shaam ko ghar mein diya jalakar gratitude practice.\n"
+        "5) Shanivar ko kale til + sarson ka tel daan.\n\n"
+        "_Personalized remedies ke liye full paid reading karayein._"
     )
