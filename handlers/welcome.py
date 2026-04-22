@@ -9,10 +9,14 @@ from utils.db import get_profile
 router = Router()
 
 WELCOME_MSG = (
-    "🌟 *Namaskar Beta/Beti!* 🌟\n\n"
-    "Main hoon *Maharishi AstroGuru Ji*.\n"
-    "Aaj hum aapki janma-jankari ke aadhaar par Vedic guidance lenge.\n\n"
-    "*Disclaimer:* Yeh spiritual/astrology guidance hai, medical ya financial advice nahi.\n\n"
+    "🙏 *Namaskar!* 🙏\n\n"
+    "🌟 *Decode Your Future* mein aapka swagat hai.\n\n"
+    "Aaiye, aapke *karmo ke phalon* aur unke *bhavishya par prabhav* "
+    "ka gehra vishleshan karte hain.\n\n"
+    "_Yahan aapko apki janm kundali, rashi, dasha-mahadasha, "
+    "aur jeevan ki sambhavit chintayon ka satik vishleshan milega._\n\n"
+    "*Disclaimer:* Yeh spiritual / astrology guidance hai, "
+    "medical ya financial advice nahi.\n\n"
     "Kya shuru karein?"
 )
 
@@ -29,7 +33,7 @@ async def start_cmd(msg: Message, state: FSMContext):
     kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="✅ Haan Ji, Shuru Karein", callback_data="consent_yes")],
-            [InlineKeyboardButton(text="❌ Nahi", callback_data="consent_no")],
+            [InlineKeyboardButton(text="❌ Abhi Nahi", callback_data="consent_no")],
         ]
     )
     await msg.answer(WELCOME_MSG + remembered, reply_markup=kb)
@@ -38,29 +42,31 @@ async def start_cmd(msg: Message, state: FSMContext):
 
 @router.callback_query(States.waiting_consent, F.data == "consent_yes")
 async def consent_yes(callback: CallbackQuery, state: FSMContext):
-    kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="Hindi", callback_data="lang_hi")],
-            [InlineKeyboardButton(text="Hinglish", callback_data="lang_hinglish")],
-        ]
+    # Default to hinglish — skip language prompt for faster flow
+    await state.update_data(language="hinglish")
+    await callback.message.answer(
+        "🙏 *Bahut badhiya!*\n\n"
+        "Sabse pehle, kripya apna *poora naam* batayein:"
     )
-    await callback.message.answer("Bahut badhiya. Language choose kariye:", reply_markup=kb)
-    await state.set_state(States.waiting_language)
+    await state.set_state(States.waiting_name)
     await callback.answer()
 
 
 @router.callback_query(States.waiting_consent, F.data == "consent_no")
 async def consent_no(callback: CallbackQuery, state: FSMContext):
     await state.clear()
-    await callback.message.answer("Theek hai. Jab ready ho, /start likh dena.")
+    await callback.message.answer(
+        "🙏 Koi baat nahi. Jab ready ho, /start likh dena.\n"
+        "Aapka future aapka intezaar kar raha hai. 🌟"
+    )
     await callback.answer()
 
 
 @router.callback_query(States.waiting_language, F.data.in_({"lang_hi", "lang_hinglish"}))
 async def set_language(callback: CallbackQuery, state: FSMContext):
+    """Legacy handler — kept for backward compatibility."""
     language = "hindi" if callback.data == "lang_hi" else "hinglish"
     await state.update_data(language=language)
-    await callback.message.answer("🙏 Namaskar! Aapka naam kya hai?")
+    await callback.message.answer("🙏 Apna *poora naam* batayein:")
     await state.set_state(States.waiting_name)
     await callback.answer()
-

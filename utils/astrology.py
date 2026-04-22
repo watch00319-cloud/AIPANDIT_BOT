@@ -213,6 +213,143 @@ def _vimshottari_mahadasha(moon_deg: float, birth_utc: datetime) -> Dict[str, st
 
 
 # ---------------------------------------------------------------------------
+# Intelligent concern prediction (rule-based Vedic interpretation)
+# ---------------------------------------------------------------------------
+DASHA_CONCERNS = {
+    "Saturn": [
+        "🔸 *Career mein delay* — mehnat ka phal milne mein der ho rahi ho sakti hai",
+        "🔸 *Responsibilities ka bojh* badh raha hai, kabhi-kabhi akelapan mehsoos hota hai",
+        "🔸 *Health* mein bones, joints ya skin se related issue ho sakti hai",
+        "🔸 *Father ya elders* ke saath samay-samay par tension",
+    ],
+    "Rahu": [
+        "🔸 *Confusion + ananya soch* — kya karein, kahaan jaayein samajh nahi aata",
+        "🔸 Sudden *ups-downs*, anxiety aur sleep issues",
+        "🔸 *Foreign / digital / online* matters mein uljhan ya unexpected events",
+        "🔸 Kabhi-kabhi *manipulation* ya dhokha ka samna",
+    ],
+    "Ketu": [
+        "🔸 *Detachment ya isolation* feel hota hai, log-bag se mann nahi lagta",
+        "🔸 *Spiritual restlessness* — 'kuch toh missing hai' wala feeling",
+        "🔸 *Sudden losses* ya kuch chhoot jane ka ehsaas",
+        "🔸 Health mein *mysterious symptoms* jo doctors clearly nahi pakad pate",
+    ],
+    "Mars": [
+        "🔸 *Anger / impatience* — chhoti baaton pe gussa aata hai",
+        "🔸 *Conflicts* — partner, siblings ya colleagues se argument",
+        "🔸 *Property / land* matters mein dispute ya delay",
+        "🔸 *Blood pressure*, accidents ya injury ka risk",
+    ],
+    "Sun": [
+        "🔸 *Authority / boss* ke saath friction, ego clashes",
+        "🔸 *Father* ki health ya relationship pe dhyaan",
+        "🔸 *Government / job* mein politics ya recognition ki kami",
+        "🔸 Self-confidence kabhi up, kabhi down",
+    ],
+    "Moon": [
+        "🔸 *Mood swings*, emotional turbulence",
+        "🔸 *Mother* se related chinta ya unka health",
+        "🔸 *Mann ashanti* — overthinking, sleep problems",
+        "🔸 Relationships mein insecurity",
+    ],
+    "Mercury": [
+        "🔸 *Communication* mein misunderstanding — log galat samajh lete hain",
+        "🔸 *Financial decisions* mein confusion ya chhoti galtiyan",
+        "🔸 *Studies / skills* mein focus ki kami",
+        "🔸 *Nervous system* — tension headaches",
+    ],
+    "Jupiter": [
+        "🔸 *Wisdom + growth* ka samay, lekin kabhi *over-confidence*",
+        "🔸 *Children* ya guru se related matters",
+        "🔸 *Weight gain*, liver ya digestion",
+        "🔸 *Spiritual seeking* badh raha hai",
+    ],
+    "Venus": [
+        "🔸 *Love / marriage* matters mein ups-downs",
+        "🔸 *Comforts / luxury* ki ichha vs reality ka gap",
+        "🔸 *Partnership* mein trust issues",
+        "🔸 *Beauty / art / glamour* field mein opportunities",
+    ],
+}
+
+# Lagna-specific tendency (broad)
+LAGNA_TENDENCIES = {
+    0: "Mesh Lagna — aap *naturally aggressive + leader* ho, lekin patience ki kami chinta deti hai",
+    1: "Vrishabh Lagna — *security + comfort* prathmikta, lekin change ka dar rehta hai",
+    2: "Mithun Lagna — *active mind*, lekin focus ek jagah tikana mushkil",
+    3: "Kark Lagna — *emotional + family-oriented*, log aapko hurt karte hain",
+    4: "Singh Lagna — *recognition + respect* chahiye, ego hurt hone se taklif",
+    5: "Kanya Lagna — *perfectionism* aur over-analysis aapko thaka deti hai",
+    6: "Tula Lagna — *relationships + balance* mein toot-phut chinta deti hai",
+    7: "Vrishchik Lagna — *secrets + transformation*, trust issues gehre hain",
+    8: "Dhanu Lagna — *freedom + truth* chahiye, restrictions chinta dete hain",
+    9: "Makar Lagna — *career + status* ke liye over-pressure mehsoos hota hai",
+    10: "Kumbh Lagna — *unique soch*, lekin alag hone ka akelapan",
+    11: "Meen Lagna — *spiritual + emotional*, duniya ki practicality mushkil lagti hai",
+}
+
+
+def _predict_concerns(
+    positions: Dict[str, float],
+    lagna_deg: float,
+    moon_deg: float,
+    dasha: Dict[str, str],
+) -> str:
+    """Generate an intelligent guess about user's likely concerns
+    based on current Mahadasha + Lagna + planetary placements.
+    Goal: build trust by showing 'the bot already knows what's bothering you'.
+    """
+    current_lord = dasha.get("current_lord", "")
+    lagna_idx = int(lagna_deg // 30) % 12
+
+    lines = [
+        "🔮 *Aapki sambhavit chintayein:*",
+        "_(Janm kundali aur abhi chal rahi dasha ke aadhaar par)_",
+        "",
+        f"💫 Aapki *{current_lord} Mahadasha* chal rahi hai — "
+        f"is samay aam taur par ye baatein mehsoos hoti hain:",
+        "",
+    ]
+
+    # Add 3-4 dasha-specific concerns
+    concerns = DASHA_CONCERNS.get(current_lord, [])
+    for concern in concerns[:4]:
+        lines.append(concern)
+
+    lines.append("")
+    lines.append(f"🌟 *Aapka swabhav (Lagna):*")
+    lines.append(f"   {LAGNA_TENDENCIES.get(lagna_idx, '')}")
+
+    # Saturn-specific check (most stressful planet)
+    saturn_deg = positions.get("Saturn", 0)
+    saturn_rasi = int(saturn_deg // 30) % 12
+    moon_rasi = int(moon_deg // 30) % 12
+    if saturn_rasi in [(moon_rasi - 1) % 12, moon_rasi, (moon_rasi + 1) % 12]:
+        lines.append("")
+        lines.append("⚠️ *Sade Sati* effect chal raha hai — Shani aapki Chandra rashi ke aas-paas hai.")
+        lines.append("   Iska matlab: extra mehnat, akelapan, lekin gehri samajhdari ka samay.")
+
+    # Mars-Saturn or Rahu-Mars proximity = stress markers
+    mars_deg = positions.get("Mars", 0)
+    rahu_deg = positions.get("Rahu", 0)
+    if abs((mars_deg - saturn_deg + 180) % 360 - 180) < 15:
+        lines.append("")
+        lines.append("⚡ *Mars-Saturn yog* — frustration aur ruke hue kaam ka pattern dikhta hai.")
+    if abs((mars_deg - rahu_deg + 180) % 360 - 180) < 15:
+        lines.append("")
+        lines.append("⚡ *Angarak Yog* (Mars-Rahu) — sudden anger aur impulsive decisions se savdhaan.")
+
+    lines.append("")
+    lines.append("━━━━━━━━━━━━━━━━━━")
+    lines.append(
+        "_Agar inn mein se kuch baatein aapko sahi lagi, "
+        "toh aap akele nahi hain. Iska *poora samadhan* mil sakta hai._"
+    )
+
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # Public high-level functions (used by handlers)
 # ---------------------------------------------------------------------------
 def build_kundli_teaser(
@@ -279,8 +416,17 @@ def build_kundli_teaser(
         f"   Changes on: *{dasha['current_ends_on']}*",
         "",
         "━━━━━━━━━━━━━━━━━━",
+    ]
+
+    # 🔮 Intelligent concern prediction — makes bot feel experienced
+    lines.append(_predict_concerns(positions, lagna_deg, moon_deg, dasha))
+
+    lines += [
+        "",
+        "━━━━━━━━━━━━━━━━━━",
         "_Ye exact astronomical data hai (NASA-grade Swiss Ephemeris). "
-        "Full paid reading mein D1/D9 charts, yogas, ashtakvarga, personalized remedies._",
+        "Full paid reading mein D1/D9 charts, yogas, ashtakvarga, "
+        "personalized remedies aur 2 prashn ka uttar milta hai._",
     ]
     return "\n".join(lines)
 
