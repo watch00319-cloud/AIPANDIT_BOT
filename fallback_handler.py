@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from aiogram import F, Router, StateFilter
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
@@ -36,3 +37,15 @@ async def pitch_fallback(msg: Message, state: FSMContext):
 async def pitch_nontext(msg: Message):
     await msg.answer("Text type karein: *PITCH* for services.")
 
+=======
+from aiogram import F, Router
+from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
+router = Router()
+
+@router.message(F.text)
+async def fallback(msg: Message, state: FSMContext):
+    current = await state.get_state()
+    await msg.answer(f"❓ Samajh nahi aaya.\\nCurrent state: {current or 'None'}\\n/help or /reset.")
+
+>>>>>>> 40b3d60c9adedf500ad2701085ecaf61dba3ab37
