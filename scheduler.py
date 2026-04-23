@@ -1,9 +1,8 @@
 import asyncio
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from vedic_astrology_bot.utils import db
-from vedic_astrology_bot.utils.astrology import generate_daily_personalized
-
+from utils import db
+from utils.astrology import generate_daily_personalized
 
 
 async def get_daily_horoscope(user_id: int) -> str:
@@ -24,3 +23,4 @@ def setup_scheduler(bot: Bot) -> None:
     scheduler = AsyncIOScheduler()
     scheduler.add_job(send_daily_horoscope, "cron", hour=8, minute=0, args=[bot])
     scheduler.start()
+
