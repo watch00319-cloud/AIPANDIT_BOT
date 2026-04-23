@@ -30,7 +30,7 @@ from handlers.analysis import router as analysis_router
 from handlers.pitch import router as pitch_router
 from handlers.extras import router as extras_router
 from handlers.subscription import router as subscription_router
-from vedic_astrology_bot.scheduler import setup_scheduler
+from scheduler import setup_scheduler
 
 # Configuration & logging
 load_dotenv()
