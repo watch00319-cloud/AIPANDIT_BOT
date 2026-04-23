@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from vedic_astrology_bot.utils import db
+from ..utils import db
 
 router = Router()
 
