@@ -7,6 +7,10 @@ from states.main import States
 
 router = Router()
 
+# Payment details — single source of truth
+UPI_ID = "darksecrets0unveiled@okhdfcbank"
+CONTACT_PHONE = "+91 9888601933"
+
 
 # ---------------------------------------------------------------------------
 # Service catalog — 4 paid packages
@@ -44,8 +48,12 @@ SERVICE_A_VEDIC_BASIC = (
     "✅ *Samadhan Vidhi* — un 2 problems ko solve karne ka tareeka\n\n"
     "🎯 *Accuracy: 95%*\n"
     "📧 Delivery: PDF via Email/WhatsApp (24-48 hrs)\n\n"
-    "📞 Book now: *+91 62839 41933*\n"
-    "💳 Payment: UPI / PhonePe / GPay"
+    "━━━━━━━━━━━━━━━━━━━━\n"
+    "💳 *Payment Details:*\n"
+    "🔹 *UPI ID:* `darksecrets0unveiled@okhdfcbank`\n"
+    "🔹 Amount: *₹499*\n"
+    "🔹 Apps: PhonePe / GPay / Paytm / BHIM\n\n"
+    "📞 Confirm + screenshot bhejein: *+91 9888601933*"
 )
 
 
@@ -68,8 +76,12 @@ SERVICE_B_VEDIC_PREMIUM = (
     "✅ *Sampuran Kundali Jankari* — har pehlu detail mein\n\n"
     "🎯 *Accuracy: 98%*\n"
     "📧 Delivery: Premium PDF (48-72 hrs)\n\n"
-    "📞 Book now: *+91 62839 41933*\n"
-    "💳 Payment: UPI / PhonePe / GPay"
+    "━━━━━━━━━━━━━━━━━━━━\n"
+    "💳 *Payment Details:*\n"
+    "🔹 *UPI ID:* `darksecrets0unveiled@okhdfcbank`\n"
+    "🔹 Amount: *₹1100*\n"
+    "🔹 Apps: PhonePe / GPay / Paytm / BHIM\n\n"
+    "📞 Confirm + screenshot bhejein: *+91 9888601933*"
 )
 
 
@@ -97,8 +109,12 @@ SERVICE_C_NUMEROLOGY_BASIC = (
     "✅ *Strong Analysis* — number energies decoded\n"
     "✅ *DOB-based predictions*\n\n"
     "📧 Delivery: PDF via Email/WhatsApp (24 hrs)\n\n"
-    "📞 Book now: *+91 62839 41933*\n"
-    "💳 Payment: UPI / PhonePe / GPay"
+    "━━━━━━━━━━━━━━━━━━━━\n"
+    "💳 *Payment Details:*\n"
+    "🔹 *UPI ID:* `darksecrets0unveiled@okhdfcbank`\n"
+    "🔹 Amount: *₹399*\n"
+    "🔹 Apps: PhonePe / GPay / Paytm / BHIM\n\n"
+    "📞 Confirm + screenshot bhejein: *+91 9888601933*"
 )
 
 
@@ -120,8 +136,12 @@ SERVICE_D_NUMEROLOGY_PREMIUM = (
     "🎯 *Accuracy: 99%*\n"
     "📜 *Chaldean system* — ancient Babylonian technique\n"
     "📧 Delivery: Premium Colored PDF (48 hrs)\n\n"
-    "📞 Book now: *+91 62839 41933*\n"
-    "💳 Payment: UPI / PhonePe / GPay"
+    "━━━━━━━━━━━━━━━━━━━━\n"
+    "💳 *Payment Details:*\n"
+    "🔹 *UPI ID:* `darksecrets0unveiled@okhdfcbank`\n"
+    "🔹 Amount: *₹1100*\n"
+    "🔹 Apps: PhonePe / GPay / Paytm / BHIM\n\n"
+    "📞 Confirm + screenshot bhejein: *+91 9888601933*"
 )
 
 
@@ -191,17 +211,34 @@ async def show_services_back(callback: CallbackQuery):
 @router.callback_query(F.data == "svc_book")
 async def book_service(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
-        "📞 *Service Book Karne Ke Liye*:\n\n"
-        "Direct contact karein:\n\n"
-        "📱 WhatsApp / Call: *+91 62839 41933*\n"
-        "💳 Payment: UPI / PhonePe / GPay\n\n"
-        "Ek baar payment confirm ho jaye, toh aapko:\n"
-        "✅ Detailed PDF report 24-72 hrs mein milegi\n"
-        "✅ Email / WhatsApp pe delivery\n\n"
-        "🙏 *Dhanyavad!* Nayi consultation ke liye /start likhein."
+        "📞 *Service Book Karne Ka Process*\n"
+        "━━━━━━━━━━━━━━━━━━━━\n\n"
+        "*STEP 1: Payment kariye* 💳\n\n"
+        "🔹 *UPI ID:*\n"
+        "`darksecrets0unveiled@okhdfcbank`\n"
+        "_(tap karke copy karein)_\n\n"
+        "🔹 Apps: PhonePe / GPay / Paytm / BHIM / Any UPI\n\n"
+        "💰 *Service prices:*\n"
+        "• 🅰️ Vedic Basic — ₹499\n"
+        "• 🅱️ Vedic Premium — ₹1100\n"
+        "• 🅲 Numerology Basic — ₹399\n"
+        "• 🅳 Numerology Premium — ₹1100\n\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "*STEP 2: Screenshot bhejein* 📸\n\n"
+        "Payment ke baad screenshot WhatsApp karein:\n"
+        "📱 *+91 9888601933*\n\n"
+        "Sath mein bhejein:\n"
+        "✅ Apna naam\n"
+        "✅ Service ka naam (A/B/C/D)\n"
+        "✅ DOB + birth time + place\n\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "*STEP 3: Report receive karein* 📧\n\n"
+        "✅ 24-72 hrs mein detailed PDF\n"
+        "✅ Email ya WhatsApp pe delivery\n\n"
+        "🙏 *Dhanyavad!* Nayi consultation: /start"
     )
     await state.clear()
-    await callback.answer("Contact info bheja gaya 🙏")
+    await callback.answer("Payment details bheja gaya 🙏")
 
 
 @router.message(Command("services"))

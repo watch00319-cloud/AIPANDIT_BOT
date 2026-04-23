@@ -28,7 +28,7 @@ async def compat_callback(callback: CallbackQuery, state: FSMContext):
 async def compatibility_input(msg: Message, state: FSMContext):
     await msg.answer(
         "Teaser complete ✅\n"
-        "Full compatibility session ke liye contact karein: *6283941933*"
+        "Full compatibility session ke liye contact karein: *9888601933*"
     )
     await state.set_state(States.pitch)
 

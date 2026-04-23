@@ -15,16 +15,11 @@ class States(StatesGroup):
     # Step 3: Free analysis shown
     analysis = State()
 
-    # Step 4: 5 life questions
-    question_1 = State()
-    question_2 = State()
-    question_3 = State()
-    question_4 = State()
-    question_5 = State()
+    # Step 4: Free question
+    free_question = State()
 
     # Step 5: Pitch
     pitch = State()
 
     # Step 6: Extras
     compatibility = State()
-

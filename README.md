@@ -17,7 +17,7 @@ Production-ready Vedic Astrology Telegram bot built with **aiogram 3.x**.
 - Daily Gochara + Compatibility teaser buttons
 - 5 life-questions flow
 - Value-building + premium pitch
-- WhatsApp CTA routing (6283941933)
+- WhatsApp CTA routing (9888601933)
 - User memory persistence (SQLite; optional persistent volume)
 - Explicit disclaimer messaging
 

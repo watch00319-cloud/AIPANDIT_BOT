@@ -27,19 +27,36 @@ async def show_free_analysis(msg: Message, state: FSMContext):
 
     msg_text = (
         f"{chart}\n\n"
-        f"{basic_remedies_text()}\n\n"
-        "Step 6/6 ✅ Free preview complete.\n"
-        "Ab main aapse 5 life questions loonga, fir final premium recommendation dunga."
+        "✅ Aapka free kundali analysis ready hai.\n\n"
+        "**FREE TRIAL**\n"
+        "Ab aap apne past, present, ya future se juda koi bhi ek sawaal bilkul free mein pooch sakte hain.\n\n"
+        "Hamare expert astrologer aapke graho ki sthiti ka analysis karke aapko sateek jawaab denge aur uska kaaran bhi batayenge.\n\n"
+        "** Apna sawaal neeche type karein:**"
     )
 
-    kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="🌙 Daily Gochara", callback_data="gochara")],
-            [InlineKeyboardButton(text="💑 Compatibility Teaser", callback_data="compat")],
-        ]
+    await msg.answer(msg_text)
+    await state.set_state(States.free_question)
+
+
+@router.message(States.free_question)
+async def handle_free_question(msg: Message, state: FSMContext):
+    question = (msg.text or "").strip()
+    if len(question) < 5:
+        await msg.answer("Kripya apna sawaal vistar se likhein.")
+        return
+
+    # Placeholder for astrologer's answer
+    answer = (
+        "**Aapke sawaal ka jawaab:**\n\n"
+        "Hamare jyotishiyon ne aapki kundali ka gehraai se vishleshan kiya hai. "
+        "Aapke graho ki sthiti ke anusaar, [yahan jyotishi ka jawaab aayega]...\n\n"
+        "**Kya aap is pareshani ka samaadhaan chahte hain?**\n"
+        "Agar aap is samasya se raahat paana chahte hain, to hamari paid services aapki madad kar sakti hain. "
+        "₹499 ya ₹1100 ki maamuli fees aapki pareshani se badi nahi hai. "
+        "Hum aapko 100% sateek upaay denge aur aapki samasya ka samaadhaan hamari pehli prathmikta hogi.\n\n"
+        "Type karein: *SERVICES*"
     )
 
-    await msg.answer(msg_text, reply_markup=kb)
-    await msg.answer("Q1/5: Career ya business mein aapki sabse badi chinta kya hai?")
-    await state.set_state(States.question_1)
+    await msg.answer(answer)
+    await state.set_state(States.pitch)
 
