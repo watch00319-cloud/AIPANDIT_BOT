@@ -11,11 +11,12 @@ router = Router()
 async def subscribe(message: Message) -> None:
     user_id = message.from_user.id
     await db.upsert_profile(user_id, {"horoscope_subscribed": True})
-    await message.reply("You have subscribed to daily horoscopes!")
+    await message.reply("✅ *Subscribed to free daily horoscope!* 🌅\nHar subah aapka personalized kundali based message milega.\n/unsubscribe to stop.")
 
 
 @router.message(Command("unsubscribe"))
 async def unsubscribe(message: Message) -> None:
     user_id = message.from_user.id
     await db.upsert_profile(user_id, {"horoscope_subscribed": False})
-    await message.reply("You have unsubscribed from daily horoscopes.")
+    await message.reply("❌ *Unsubscribed from daily horoscope.*\nKoi baat nahi, jab chahiye /subscribe kar lena.")
+

@@ -27,7 +27,8 @@ async def show_free_analysis(msg: Message, state: FSMContext):
 
     msg_text = (
         f"{chart}\n\n"
-        "✅ Aapka free kundali analysis ready hai.\n\n"
+        "✅ Aapka free kundali analysis ready hai. 🌟\n\n"
+        "*Pro tip:* Free daily horoscope ke liye subscribed ho (auto after birth data)! /unsubscribe anytime.\n\n"
         "**FREE TRIAL**\n"
         "Ab aap apne past, present, ya future se juda koi bhi ek sawaal bilkul free mein pooch sakte hain.\n\n"
         "Hamare expert astrologer aapke graho ki sthiti ka analysis karke aapko sateek jawaab denge aur uska kaaran bhi batayenge.\n\n"
