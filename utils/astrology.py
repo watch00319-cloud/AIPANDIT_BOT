@@ -468,3 +468,60 @@ def basic_remedies_text() -> str:
         "5) Shanivar ko kale til + sarson ka tel daan.\n\n"
         "_Personalized remedies ke liye full paid reading karayein._"
     )
+
+def generate_daily_personalized(
+    name: str,
+    dob: str,
+    tob: str,
+    lat: float,
+    lon: float
+) -> str:
+    \"\"\"Generate personalized daily horoscope based on kundli + current transits.\"\"\"
+    tz_name = get_timezone_for_coords(lat, lon)
+    try:
+        birth_utc = parse_birth_to_utc(dob, tob, tz_name)
+    except Exception:
+        return \"Namaste %s ji 🌟\\nAaj positivity aur patience focus karein!\" % name
+
+    jd_birth = _julian_day(birth_utc)
+    try:
+        positions_birth = _compute_planet_positions(jd_birth)
+        moon_deg = positions_birth[\"Moon\"]
+        dasha = _vimshottari_mahadasha(moon_deg, birth_utc)
+    except Exception:
+        return \"Namaste %s ji! 🌟\\nAaj ka din shubh rahe!\" % name
+
+    current_lord = dasha[\"current_lord\"]
+    concerns = DASHA_CONCERNS.get(current_lord, [])
+    gochara = daily_gochara_text()
+
+    lines = [
+        \"🌅 *Namaste %s ji!* 🙏\" % name,
+        \"_Aapka *daily personalized horoscope* (kundali based)_ \",
+        \"\",
+        \"💫 *Chal rahi Dasha:* *%s*\" % current_lord,
+        \"⏳ Baaki: %s | Ends: %s\" % (dasha[\"remaining_in_current\"], dasha[\"current_ends_on\"]),
+        \"\",
+        \"🔮 *Aaj ki chintayein:* \",
+    ]
+
+    for concern in concerns[:3]:
+        lines.append(\"  • %s\" % concern)
+
+    lines += [
+        \" \",
+        \"🪐 *Aaj ka Gochara:* \",
+    ]
+
+    gochara_parts = gochara.splitlines()
+    for part in gochara_parts[1:5]:
+        lines.append(\"  %s\" % part)
+
+    lines += [
+        \"\",
+        \"✨ *Simple upay:* ☀️ Surya ko jal arpan + positive affirmations. \",
+        \" \",
+        \"_Trusted Vedic calculations se bana. Daily ke liye subscribed rahen!_ 🌟 \"
+    ]
+
+    return \"\\n\".join(lines)

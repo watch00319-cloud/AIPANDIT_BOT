@@ -1,3 +1,54 @@
+<<<<<<< HEAD
+"""Vedic Astrology Telegram Bot - Main entrypoint."""
+import asyncio
+import logging
+import os
+
+from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
+
+import handlers.welcome
+import handlers.birth_collection
+import handlers.analysis
+import handlers.pitch
+import handlers.subscription
+import handlers.extras
+import fallback_handler
+# Assume questions.py exists
+# import handlers.questions
+from utils.db import init_db
+from scheduler import setup_scheduler
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+async def main():
+    bot = Bot(token=os.getenv("BOT_TOKEN"), default=DefaultBotProperties(parse_mode="Markdown"))
+    dp = Dispatcher()
+    
+    # Include all routers
+    dp.include_router(welcome.router)
+    dp.include_router(birth_collection.router)
+    dp.include_router(analysis.router)
+    dp.include_router(pitch.router)
+    dp.include_router(subscription.router)
+    dp.include_router(extras.router)
+    dp.include_router(fallback_handler.router)
+    # dp.include_router(questions.router) # if exists
+    
+    # Init
+    await init_db()
+    logger.info("Initializing database ...")
+    
+    setup_scheduler(bot)
+    
+    logger.info("Bot polling started")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+=======
 """
 Vedic Astrology Telegram Bot — entry point.
 
@@ -14,9 +65,9 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramUnauthorizedError
-from aiogram.filters import StateFilter
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 
 # Relative imports
@@ -27,9 +78,11 @@ from dotenv import load_dotenv
 from handlers.welcome import router as welcome_router, WELCOME_MSG
 from handlers.birth_collection import router as birth_collection_router
 from handlers.analysis import router as analysis_router
-from handlers.questions import router as questions_router
 from handlers.pitch import router as pitch_router
 from handlers.extras import router as extras_router
+from handlers.subscription import router as subscription_router
+from scheduler import setup_scheduler
+
 
 # Configuration & logging
 load_dotenv()
@@ -83,13 +136,23 @@ async def main() -> None:
         await msg.answer(WELCOME_MSG + remembered, reply_markup=kb)
         await state.set_state(States.waiting_consent)
 
+    @dp.message(Command("myid"))
+    async def myid_cmd(msg: Message):
+        await msg.answer(f"🆔 Your user ID: `{msg.from_user.id}`\\nUse for test notifications.")
+
+    @dp.message(Command("status"))
+    async def status_cmd(msg: Message, state: FSMContext):
+        current = await state.get_state()
+        await msg.answer(f"Current state: `{current}`")
+
     dp.include_router(welcome_router)
     dp.include_router(birth_collection_router)
     dp.include_router(analysis_router)
-    dp.include_router(questions_router)
     dp.include_router(pitch_router)
     dp.include_router(extras_router)
+    dp.include_router(subscription_router)
 
+    setup_scheduler(bot)
     logger.info("Bot polling started")
     try:
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
@@ -113,4 +176,4 @@ if __name__ == "__main__":
     except Exception:
         logger.exception("Fatal error: bot crashed")
         sys.exit(1)
-
+>>>>>>> 40b3d60c9adedf500ad2701085ecaf61dba3ab37

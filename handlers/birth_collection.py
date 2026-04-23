@@ -86,14 +86,17 @@ async def collect_place(msg: Message, state: FSMContext):
             "lat": lat,
             "lon": lon,
             "language": data.get("language", "hinglish"),
+            "horoscope_subscribed": True,
         },
     )
 
     logger.info(f"User Data: {{'chatId': {msg.chat.id}, 'userId': {msg.from_user.id}, 'data': {data}}}")
 
     await msg.answer(
-        "✅ Details mil gayi hain! Ab analysis start ho raha hai 🔮\n\n"
-        "Type karein: *ANALYZE*"
+        "✅ *Details saved!* 🌟\n\n"
+        "🎁 *Auto subscribed* free **daily personalized horoscope** (name ke according kundali analysis)!\n"
+        "/unsubscribe anytime.\n\n"
+        "🔮 Ab *ANALYZE* type karein!"
     )
     await state.set_state(States.analysis)
 
