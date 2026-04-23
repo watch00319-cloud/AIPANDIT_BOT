@@ -1,7 +1,7 @@
 import asyncio
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from vedic_astrology_bot.utils import db
+from utils import db
 
 
 async def get_daily_horoscope(user_id: int) -> str:
