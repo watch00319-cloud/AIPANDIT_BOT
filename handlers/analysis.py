@@ -2,16 +2,22 @@ from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
+import logging
+
 from states.main import States
 from utils.astrology import build_kundli_teaser, basic_remedies_text
 
+logger = logging.getLogger(__name__)
 router = Router()
 
 
 @router.message(States.analysis)
 async def show_free_analysis(msg: Message, state: FSMContext):
-    if (msg.text or "").strip().lower() != "analyze":
-        await msg.answer("Analysis shuru karne ke liye *ANALYZE* likhiye.")
+    lower_text = (msg.text or "").strip().lower()
+    logger.info(f"[{msg.from_user.id}] Analysis handler fired for text: '{msg.text}' (lower: '{lower_text}')")
+    
+    if len(lower_text) < 3 or 'analyze' not in lower_text:
+        await msg.answer("Analysis shuru karne ke liye *ANALYZE* likhiye (ya 'analyze' word use karein).")
         return
 
     data = await state.get_data()
