@@ -27,9 +27,10 @@ from dotenv import load_dotenv
 from handlers.welcome import router as welcome_router, WELCOME_MSG
 from handlers.birth_collection import router as birth_collection_router
 from handlers.analysis import router as analysis_router
-from handlers.questions import router as questions_router
 from handlers.pitch import router as pitch_router
 from handlers.extras import router as extras_router
+from handlers.subscription import router as subscription_router
+from vedic_astrology_bot.scheduler import setup_scheduler
 
 # Configuration & logging
 load_dotenv()
@@ -86,10 +87,11 @@ async def main() -> None:
     dp.include_router(welcome_router)
     dp.include_router(birth_collection_router)
     dp.include_router(analysis_router)
-    dp.include_router(questions_router)
     dp.include_router(pitch_router)
     dp.include_router(extras_router)
+    dp.include_router(subscription_router)
 
+    setup_scheduler(bot)
     logger.info("Bot polling started")
     try:
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
@@ -113,4 +115,3 @@ if __name__ == "__main__":
     except Exception:
         logger.exception("Fatal error: bot crashed")
         sys.exit(1)
-
