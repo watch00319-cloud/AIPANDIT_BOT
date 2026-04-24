@@ -6,7 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 
 from handlers.onboarding import router as onboarding_router
 
-TOKEN = "PASTE_YOUR_NEW_TOKEN_HERE"
+TOKEN = "8622936864:AAGHbcrK6bX2xR_IXbuFyA6T67ToWigs3Is"
 
 
 async def main():
