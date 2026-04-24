@@ -16,7 +16,7 @@ from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramUnauthorizedError
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from handlers import welcome, birth_collection, analysis, pitch, extras, questions
+from handlers import welcome, birth_collection, analysis, pitch, extras, questions, start
 from utils.db import init_db
 
 logging.basicConfig(
@@ -38,11 +38,13 @@ async def main() -> None:
     dp = Dispatcher(storage=MemoryStorage())
 
     # Register all routers
+    dp.include_router(welcome.router)
     dp.include_router(birth_collection.router)
     dp.include_router(analysis.router)
     dp.include_router(pitch.router)
     dp.include_router(extras.router)
     dp.include_router(questions.router)
+    dp.include_router(start.router)
 
     # Initialise database tables
     await init_db()
@@ -59,6 +61,3 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
-from handlers.start import router as start_router
-
-dp.include_router(start_router)
