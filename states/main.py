@@ -25,6 +25,11 @@ class States(StatesGroup):
     # Step 5: Pitch
     pitch = State()
 
+    # Payment flow states
+    upsell = State()
+    payment_verification = State()
+    waiting_details = State()
+
     # Step 6: Extras
     compatibility = State()
 

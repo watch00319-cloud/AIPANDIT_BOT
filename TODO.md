@@ -1,34 +1,20 @@
-# Vedic Astrology Bot - Free Trial + Payment Integration TODO
+# Vedic Astrology Bot Flow Update - TODO
 
-## Steps to Complete (Approved Plan Implementation)
+## Plan Implementation Steps (Approved)
 
-### 1. Create New Files ✅
-- ✅ `handlers/payment.py` - Trial JSON utils, trial_active(), payment flow, photo unlock handler.
-- ✅ `user_data.json` - Empty dict `{}` for user tracking.
-- ⚠️ Note: upi_qr.png - Place QR code image file in vedic_astrology_bot/ root.
+✅ **Step 1**: Create/update TODO.md (Current)
 
-### 2. Update main.py
-- [ ] Import payment_router.
-- [ ] Include dp.include_router(payment_router).
-- [ ] Add trial guards to auto_start_flow.
+✅ **Step 2**: Update states/main.py - Add new states (upsell, verification, details) - COMPLETED
 
-### 3. Update handlers/welcome.py
-- [ ] New WELCOME_MSG with "Karmafal AI 2 min FREE".
-- [ ] Integrate trial check on /start.
+✅ **Step 3**: Update handlers/pitch.py - Exact menu, services, upsell logic - COMPLETED
 
-### 4. Add Trial Guards ✅
-- ✅ handlers/analysis.py - Check before 'analyze'.
-- ✅ handlers/questions.py - Check before each q handler.
-- ✅ birth_collection.py - No guard (allow during trial).
+✅ **Step 4**: Update handlers/payment.py - Payment flow messages, screenshot handling, verification → details → final - COMPLETED
 
-### 5. Test & Verify ✅
-Local testing recommended:
-- Run `python vedic_astrology_bot/run.py` or `python main.py`
-- Test flow: /start (free welcome), collect birth data, analyze (within 2min), wait >2min or edit JSON time, trigger payment msg + photo → unlock.
-- Existing pitch/services untouched.
-- Place upi_qr.png for full flow.
+✅ **Step 5**: No changes needed for birth_collection.py - Details handled in payment flow
 
-All code modifications complete. Bot enhanced with trial + payment flow, keeping existing system intact.
+**Step 6**: Test full flow (run bot, /pitch → buy → payment → details → final)
 
-**Progress: 5/5 complete ✅**
+**Step 7**: attempt_completion
+
+*Progress: 3/7 Complete*
 
