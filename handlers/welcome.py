@@ -5,25 +5,23 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 
 from states.main import States
 from utils.db import get_profile
+from .payment import trigger_payment
 
 router = Router()
 
 WELCOME_MSG = (
-    "🙏 *Namaskar!* 🙏\n\n"
-    "🌟 *Decode Your Future* mein aapka swagat hai.\n\n"
-    "Aaiye, aapke *karmo ke phalon* aur unke *bhavishya par prabhav* "
-    "ka gehra vishleshan karte hain.\n\n"
-    "_Yahan aapko apki janm kundali, rashi, dasha-mahadasha, "
-    "aur jeevan ki sambhavit chintayon ka satik vishleshan milega._\n\n"
-    "*Disclaimer:* Yeh spiritual / astrology guidance hai, "
-    "medical ya financial advice nahi.\n\n"
-    "Kya shuru karein?"
+    "🔮 Welcome to Decode Your Future  \n"
+    "⏳ You have 2 minutes FREE access  \n"
+    "Ask any question"
 )
 
 
 @router.message(Command("start"))
 async def start_cmd(msg: Message, state: FSMContext):
     await state.clear()
+
+    if await trigger_payment(msg):
+        return
 
     profile = await get_profile(msg.from_user.id)
     remembered = ""

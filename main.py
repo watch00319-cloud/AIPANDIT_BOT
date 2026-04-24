@@ -31,6 +31,7 @@ from handlers.questions import router as questions_router
 from handlers.pitch import router as pitch_router
 from handlers.extras import router as extras_router
 
+
 # Configuration & logging
 load_dotenv()
 
@@ -69,6 +70,9 @@ async def main() -> None:
         """Auto-trigger welcome on any non-command text when no state active."""
         await state.clear()
 
+        if await trigger_payment(msg):
+            return
+
         profile = await get_profile(msg.from_user.id)
         remembered = ""
         if profile and profile.name:
@@ -89,6 +93,7 @@ async def main() -> None:
     dp.include_router(questions_router)
     dp.include_router(pitch_router)
     dp.include_router(extras_router)
+    
 
     logger.info("Bot polling started")
     try:
