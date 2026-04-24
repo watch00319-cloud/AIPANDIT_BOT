@@ -12,6 +12,8 @@ DATA_FILE = "user_data.json"
 UPI_ID = "darksecrets0unveiled@okhdfcbank"
 PHONE = "9888601933"
 
+TEXT_WHATSAPP = "whatsapp://send?phone=919888601933"
+
 def load_user_data() -> Dict[int, Dict[str, Any]]:
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'r', encoding='utf-8') as f:
@@ -53,14 +55,14 @@ async def trigger_payment(msg: Message) -> bool:
     if trial_active(msg.from_user.id):
         return False
     text = (
-        "💳 Payment Required\n"
-        "Your free trial is over\n\n"
-        "UPI ID: darksecrets0unveiled@okhdfcbank\n"
-        "Mobile Number: 9888601933\n\n"
-        "To continue, use paid service\n"
+        "💳 Payment Required\\n"
+        "Your free trial is over\\n\\n"
+        f"UPI ID: {UPI_ID}\\n"
+        f"[WhatsApp]({TEXT_WHATSAPP})\\n\\n"
+        "To continue, use paid service\\n"
         "Send payment screenshot after payment"
     )
-    await msg.answer(text)
+    await msg.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
     try:
         qr_file = FSInputFile("upi_qr.png")
         await msg.bot.send_photo(msg.chat.id, qr_file)
@@ -73,9 +75,8 @@ async def handle_screenshot(msg: Message):
     status = get_user_status(msg.from_user.id)
     if not status["paid_status"]:
         mark_paid(msg.from_user.id)
-        await msg.answer("✅ Payment received\n🔓 Full access unlocked")
+        await msg.answer("✅ Payment received\\n🔓 Full access unlocked")
     else:
         await msg.answer("✅ Already unlocked!")
 
 __all__ = ["trigger_payment", "trial_active"]
-
