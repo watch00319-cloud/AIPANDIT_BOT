@@ -1,0 +1,6 @@
+*.log
+add
+.git
+commit
+-m
+cleanup
