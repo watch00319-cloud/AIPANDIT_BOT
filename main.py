@@ -6,7 +6,8 @@ from aiogram.client.default import DefaultBotProperties
 
 from handlers.onboarding import router as onboarding_router
 
-TOKEN = "YOUR_BOT_TOKEN_HERE"  # <-- yaha apna token daalo
+TOKEN = "PASTE_YOUR_NEW_TOKEN_HERE"
+
 
 async def main():
     bot = Bot(
@@ -16,12 +17,14 @@ async def main():
 
     dp = Dispatcher()
 
-    # ✅ IMPORTANT: onboarding router connect
+    # connect router
     dp.include_router(onboarding_router)
 
-    print("✅ Bot is running...")
+    print("🚀 Bot started...")
 
+    # START BOT (MOST IMPORTANT)
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
