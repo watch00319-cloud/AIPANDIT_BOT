@@ -55,11 +55,12 @@ async def trigger_payment(msg: Message) -> bool:
     if trial_active(msg.from_user.id):
         return False
     text = (
-        "💳 Payment Required\\n"
-        "Your free trial is over\\n\\n"
-        f"UPI ID: {UPI_ID}\\n"
-        f"[WhatsApp]({TEXT_WHATSAPP})\\n\\n"
-        "To continue, use paid service\\n"
+        "💳 Payment Required\n"
+        "Your free trial is over\n\n"
+        f"UPI ID: {UPI_ID}\n"
+        f"Phone: 9888601933\n"
+        f"[WhatsApp]({TEXT_WHATSAPP})\n\n"
+        "To continue, use paid service\n"
         "Send payment screenshot after payment"
     )
     await msg.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
@@ -75,7 +76,7 @@ async def handle_screenshot(msg: Message):
     status = get_user_status(msg.from_user.id)
     if not status["paid_status"]:
         mark_paid(msg.from_user.id)
-        await msg.answer("✅ Payment received\\n🔓 Full access unlocked")
+        await msg.answer("✅ Payment received\n🔓 Full access unlocked")
     else:
         await msg.answer("✅ Already unlocked!")
 
