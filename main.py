@@ -1,116 +1,27 @@
-"""
-Vedic Astrology Telegram Bot — entry point.
+from onboarding import start_onboarding, handle_onboarding, is_user_ready, is_free_time_valid
 
-Runs aiogram 3.x polling. Works locally (reads .env) and on Railway /
-any PaaS (reads platform-injected environment variables).
-"""
-
-import asyncio
-import logging
-import os
-import sys
-
-from aiogram import Bot, Dispatcher, F
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
-from aiogram.exceptions import TelegramUnauthorizedError
-from aiogram.filters import StateFilter
-from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.fsm.context import FSMContext
-
-# Relative imports
-from states.main import States
-from utils.db import get_profile, init_db
-from dotenv import load_dotenv
-
-from handlers.welcome import router as welcome_router, WELCOME_MSG
-from handlers.birth_collection import router as birth_collection_router
-from handlers.analysis import router as analysis_router
-from handlers.questions import router as questions_router
-from handlers.pitch import router as pitch_router
-from handlers.extras import router as extras_router
-
-# Configuration & logging
-load_dotenv()
-
-BOT_TOKEN = (os.getenv("BOT_TOKEN") or "").strip()
-LOG_LEVEL = (os.getenv("LOG_LEVEL") or "INFO").upper()
-
-logging.basicConfig(
-    level=LOG_LEVEL,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-    stream=sys.stdout,
-)
-logger = logging.getLogger("vedic_astrology_bot")
+@bot.message_handler(commands=['start'])
+def start(message):
+    reply = start_onboarding(message.chat.id)
+    bot.send_message(message.chat.id, reply)
 
 
-async def main() -> None:
-    if not BOT_TOKEN:
-        logger.error(
-            "BOT_TOKEN is not set. "
-            "Local dev: create a `.env` file with BOT_TOKEN=<your_token>. "
-            "Railway / PaaS: add BOT_TOKEN under the service's Variables tab, "
-            "then redeploy."
+@bot.message_handler(func=lambda msg: True)
+def all_messages(message):
+    user_id = message.chat.id
+
+    # 🔥 अगर onboarding complete नहीं
+    if not is_user_ready(user_id):
+        reply = handle_onboarding(user_id, message.text)
+        bot.send_message(user_id, reply)
+        return
+
+    # 🔥 free time check
+    if is_free_time_valid(user_id):
+        # 👉 यहाँ अपना AI response डालो
+        bot.send_message(user_id, f"🔮 Aapka jawab:\n\n{message.text} (AI response yaha ayega)")
+    else:
+        bot.send_message(
+            user_id,
+            "⛔ Free time khatam ho gaya hai.\n\n💳 Paid service use kare.\nUPI: darksecrets0unveiled@okhdfcbank"
         )
-        sys.exit(1)
-
-    logger.info("Initializing database ...")
-    await init_db()
-
-    bot = Bot(
-        token=BOT_TOKEN,
-        default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
-    )
-    dp = Dispatcher(storage=MemoryStorage())
-
-    @dp.message(StateFilter(None), F.text & ~F.text.startswith("/"))
-    async def auto_start_flow(msg: Message, state: FSMContext):
-        """Auto-trigger welcome on any non-command text when no state active."""
-        await state.clear()
-
-        profile = await get_profile(msg.from_user.id)
-        remembered = ""
-        if profile and profile.name:
-            remembered = f"\n\n🧠 Mujhe yaad hai aapka naam *{profile.name}* hai."
-
-        kb = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [InlineKeyboardButton(text="✅ Haan Ji, Shuru Karein", callback_data="consent_yes")],
-                [InlineKeyboardButton(text="❌ Abhi Nahi", callback_data="consent_no")],
-            ]
-        )
-        await msg.answer(WELCOME_MSG + remembered, reply_markup=kb)
-        await state.set_state(States.waiting_consent)
-
-    dp.include_router(welcome_router)
-    dp.include_router(birth_collection_router)
-    dp.include_router(analysis_router)
-    dp.include_router(questions_router)
-    dp.include_router(pitch_router)
-    dp.include_router(extras_router)
-
-    logger.info("Bot polling started")
-    try:
-        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
-    except TelegramUnauthorizedError:
-        logger.error(
-            "BOT_TOKEN was rejected by Telegram (Unauthorized). "
-            "The token is invalid or has been revoked. "
-            "Generate a new token via @BotFather and update the BOT_TOKEN env var."
-        )
-        sys.exit(1)
-    finally:
-        logger.info("Shutting down bot ...")
-        await bot.session.close()
-
-
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
-        logger.info("Bot stopped by user / system")
-    except Exception:
-        logger.exception("Fatal error: bot crashed")
-        sys.exit(1)
-
