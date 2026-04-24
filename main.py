@@ -30,6 +30,7 @@ from handlers.analysis import router as analysis_router
 from handlers.questions import router as questions_router
 from handlers.pitch import router as pitch_router
 from handlers.extras import router as extras_router
+from handlers.payment import router as payment_router, trigger_payment
 
 
 # Configuration & logging
@@ -93,7 +94,11 @@ async def main() -> None:
     dp.include_router(questions_router)
     dp.include_router(pitch_router)
     dp.include_router(extras_router)
+<<<<<<< HEAD
     
+=======
+    dp.include_router(payment_router)
+>>>>>>> 2fd36d67402011f51df74a20dadb87967d0d8394
 
     logger.info("Bot polling started")
     try:
