@@ -38,7 +38,6 @@ async def main() -> None:
     dp = Dispatcher(storage=MemoryStorage())
 
     # Register all routers
-    dp.include_router(comment.router)
     dp.include_router(birth_collection.router)
     dp.include_router(analysis.router)
     dp.include_router(pitch.router)
