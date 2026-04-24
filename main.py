@@ -60,3 +60,6 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
+from handlers.start import router as start_router
+
+dp.include_router(start_router)
