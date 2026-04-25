@@ -7,22 +7,53 @@ from states.main import States
 
 router = Router()
 
-PITCH_MAIN = """🌟 Decode Your Future — Premium Astrology Bot Flow 🌟
+"""🔮 Astro Insight Premium Services
 
-🎯 99% Accurate Report Guarantee
-💯 Not satisfied? 100% Money Back Guarantee
+✨ 99% Accurate Personalized Report Guarantee
+💯 Not Satisfied? Get 100% Money Back — No Questions Asked
 
-━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━
 
-🔮 MAIN MENU
+आपका FREE Preview सफलतापूर्वक पूरा हो चुका है ✅
+अब आप अपनी जरूरत के अनुसार हमारी Premium Services चुन सकते हैं:
 
-User ko ye options dikhayein:
-A) Vedic Basic — ₹499
-B) Vedic Premium — ₹1100
-C) Numerology Basic — ₹399
-D) Numerology Premium — ₹1100
+━━━━━━━━━━━━━━━━━━━
 
-━━━━━━━━━━━━━━━━━━━━━━"""
+🕉 VEDIC KUNDALI ANALYSIS
+
+🅐 Basic Report — ₹499
+• Complete Kundali Overview
+• Career & Relationship Insights
+
+🅑 Premium + Remedies — ₹1100
+• Detailed Life Analysis
+• Accurate Predictions
+• Personalized Remedies (Upay)
+
+━━━━━━━━━━━━━━━━━━━
+
+🔢 NUMEROLOGY ANALYSIS
+
+🅒 Basic Report — ₹399
+• Name & DOB Analysis
+• Personality & Luck Insights
+
+🅓 Premium Report — ₹1100
+• Advanced Numerology Reading
+• Career, Finance & Relationship Guidance
+• Powerful Remedies
+
+━━━━━━━━━━━━━━━━━━━
+
+👇 Service select karne ke liye niche button par click karein
+
+🅐 Vedic Basic — ₹499
+
+🅑 Vedic Premium — ₹1100
+
+🅒 Numerology Basic — ₹399
+
+🅓 Numerology Premium — ₹1100"""
 
 SERVICE_A = """🅰️ VEDIC BASIC (₹499)
 
@@ -106,10 +137,10 @@ Features:
 def _services_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="🅰️ Vedic Basic — ₹499", callback_data="svc_a")],
-            [InlineKeyboardButton(text="🅱️ Vedic Premium — ₹1100", callback_data="svc_b")],
-            [InlineKeyboardButton(text="🅲 Numerology Basic — ₹399", callback_data="svc_c")],
-            [InlineKeyboardButton(text="🅳 Numerology Premium — ₹1100", callback_data="svc_d")]
+[InlineKeyboardButton(text="🅐 Vedic Basic — ₹499", callback_data="svc_a")]
+[InlineKeyboardButton(text="🅑 Vedic Premium — ₹1100", callback_data="svc_b")]
+[InlineKeyboardButton(text="🅒 Numerology Basic — ₹399", callback_data="svc_c")]
+[InlineKeyboardButton(text="🅓 Numerology Premium — ₹1100", callback_data="svc_d")]
         ]
     )
 
@@ -132,25 +163,17 @@ def _buy_keyboard(service: str) -> InlineKeyboardMarkup:
 async def send_pitch(msg: Message, state: FSMContext):
     await msg.answer(PITCH_MAIN, reply_markup=_services_keyboard(), parse_mode="Markdown")
 
-@router.callback_query(F.data == "svc_a")
-async def show_service_a(callback: CallbackQuery):
-    await callback.message.answer(SERVICE_A, reply_markup=_back_keyboard(), parse_mode="Markdown")
-    await callback.answer()
+@router.callback_query(F.data == "svc_a")\nasync def show_service_a(callback: CallbackQuery):\n    await callback.message.answer(SERVICE_A, reply_markup=_buy_keyboard("Vedic Basic"), parse_mode="Markdown")\n    await callback.answer()
 
 @router.callback_query(F.data == "svc_b")
 async def show_service_b(callback: CallbackQuery):
-    await callback.message.answer(SERVICE_B, reply_markup=_buy_keyboard("Premium"), parse_mode="Markdown")
-    await callback.answer()
+    await callback.message.answer(SERVICE_B, reply_markup=_buy_keyboard("Vedic Premium"), parse_mode="Markdown")\n    await callback.answer()
 
-@router.callback_query(F.data == "svc_c")
-async def show_service_c(callback: CallbackQuery):
-    await callback.message.answer(SERVICE_C, reply_markup=_back_keyboard(), parse_mode="Markdown")
-    await callback.answer()
+@router.callback_query(F.data == "svc_c")\nasync def show_service_c(callback: CallbackQuery):\n    await callback.message.answer(SERVICE_C, reply_markup=_buy_keyboard("Numerology Basic"), parse_mode="Markdown")\n    await callback.answer()
 
 @router.callback_query(F.data == "svc_d")
 async def show_service_d(callback: CallbackQuery):
-    await callback.message.answer(SERVICE_D, reply_markup=_buy_keyboard("Premium"), parse_mode="Markdown")
-    await callback.answer()
+    await callback.message.answer(SERVICE_D, reply_markup=_buy_keyboard("Numerology Premium"), parse_mode="Markdown")\n    await callback.answer()
 
 @router.callback_query(F.data == "svc_back")
 async def show_services_back(callback: CallbackQuery):

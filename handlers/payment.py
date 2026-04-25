@@ -52,7 +52,7 @@ async def trigger_payment(msg: Message, service: str) -> bool:
     status = get_user_status(msg.from_user.id)
     if status["paid_status"]:
         return False
-    text = f"💳 PAYMENT FLOW\n\nUPI ID: {UPI_ID}\nWhatsApp: {PHONE}\n\nPayment karein aur screenshot bhejein (5–15 min verification)"
+    text = f"💳 Payment for {service}\n\nwhatsapp only {PHONE}\nUPI ID: {UPI_ID}\n\nPayment karein aur screenshot bhejein (5–15 min verification)"
     await msg.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
     try:
         qr_file = FSInputFile("upi_qr.png")
