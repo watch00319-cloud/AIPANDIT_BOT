@@ -5,6 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 from states.main import States
 from utils.astrology import daily_gochara_text, compatibility_teaser_text
+from .pitch import send_services_menu
 
 router = Router()
 
@@ -30,13 +31,7 @@ async def compatibility_input(msg: Message, state: FSMContext):
         "Teaser complete ✅\n"
         "Full compatibility session ke liye contact karein: *6283941933*"
     )
-    await state.set_state(States.pitch)
-
-    await msg.answer(
-        "/start - Nayi consultation shuru karein\n"
-        "/reset - Current session reset\n"
-        "/help - Ye help text"
-    )
+    await send_services_menu(msg, state)
 
 
 @router.message(Command("reset"))

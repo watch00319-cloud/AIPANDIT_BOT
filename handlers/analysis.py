@@ -4,16 +4,12 @@ from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from states.main import States
 from utils.astrology import build_kundli_teaser, basic_remedies_text
-from .payment import trigger_payment
 
 router = Router()
 
 
 @router.message(States.analysis)
 async def show_free_analysis(msg: Message, state: FSMContext):
-    if await trigger_payment(msg):
-        return
-
     if (msg.text or "").strip().lower() != "analyze":
         await msg.answer("Analysis shuru karne ke liye *ANALYZE* likhiye.")
         return

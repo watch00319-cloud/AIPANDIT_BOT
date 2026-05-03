@@ -11,7 +11,6 @@ from aiogram.client.default import DefaultBotProperties
 from handlers.welcome import router as welcome_router
 from handlers.payment import router as payment_router
 from handlers.birth_collection import router as birth_collection_router
-from handlers.start import router as start_router
 from handlers.extras import router as extras_router
 from handlers.analysis import router as analysis_router
 from handlers.questions import router as questions_router
@@ -46,7 +45,6 @@ async def main():
     dp.include_router(welcome_router)
     dp.include_router(payment_router)
     dp.include_router(birth_collection_router)
-    dp.include_router(start_router)
     dp.include_router(extras_router)
     dp.include_router(analysis_router)
     dp.include_router(questions_router)
